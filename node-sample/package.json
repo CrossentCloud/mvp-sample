@@ -1,0 +1,14 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "node dockerfile test",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/main.js",
+    "build": "webpack --mode production"
+  },
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}

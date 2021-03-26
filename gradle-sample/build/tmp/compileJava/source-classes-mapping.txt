@@ -1,0 +1,8 @@
+com/example/hello/RecordRepository.java
+ com.example.hello.RecordRepository
+com/example/hello/HelloApplication.java
+ com.example.hello.HelloApplication
+com/example/hello/HomeController.java
+ com.example.hello.HomeController
+com/example/hello/Record.java
+ com.example.hello.Record

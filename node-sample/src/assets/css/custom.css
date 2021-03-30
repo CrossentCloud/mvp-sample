@@ -1,0 +1,43 @@
+@charset "utf-8";
+
+@import url(notosanskr.css);
+@import url(font-awesome.css);
+
+body {
+    caret-color: #02aab0;
+    color: #272341;
+}
+.w-80 {width:80% !important;}
+.vt-middle {vertical-align: middle !important;}
+.vt-top {vertical-align: top !important;}
+.todolist-header {
+    text-align: left;
+    max-width: 550px;
+    margin: 50px auto 0;
+    background: linear-gradient(135deg, #02aab0, #00cdac);
+    padding: 30px;
+}
+.todolist-header h3 {color: #fff;}
+
+.todolist-con {
+    max-width: 550px;
+    margin: auto;
+    background: #f8f8f8;
+    padding: 20px;
+}
+.todo-input {
+    border-radius: 15px;
+    display: inline-block;
+}
+.add-btn {
+    background-color: transparent;
+    font-size: 30px;
+    line-height: 60px;
+    margin-left: 5px;
+    color: white;
+    border: 0;
+}
+
+.completed {
+    text-decoration: line-through;
+}

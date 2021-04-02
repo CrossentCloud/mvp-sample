@@ -1,12 +1,27 @@
-import {Server} from "../app";
+import React from "react";
+import configureStore from "./store";
+import {Provider} from "react-redux";
+import ReactDOM from 'react-dom';
+import reducer from './reducer/index';
+import App from './component/App';
+import './index.css';
 
+const store = configureStore(reducer, {
+    "todos": [
+        {"id":1, "todo": "Node", "complete": false},
+        {"id":2, "todo": "청소하기", "complete": false},
+        {"id":3, "todo": "공부하기", "complete": false},
+    ]
+});
 
-const port = 3000;
-const app= new Server().app;
-app.set('port',port);
-app.listen(app.get('port'),()=>{
-    console.log(app.get('port') + 'server is Running');
-}).on('error',err => {
-    console.log('Error message ' + err);
+const render = () => {
+    ReactDOM.render(
+        <Provider store={store}>
+            <App/>
+        </Provider>,
+        document.getElementById('root')
+    )
+};
 
-})
+store.subscribe(render);
+render();

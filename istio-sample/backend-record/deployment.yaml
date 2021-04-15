@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-app
+  labels:
+    app: backend-app
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-app
+      version: v1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: backend-app
+        version: v1
+    spec:
+      containers:
+        - name: backend-app
+          image: harbor.clap.crossent.com/istio-app/backend-app:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Seoul
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-app
+  labels:
+    app: backend-app
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: backend-app
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: backend-app
+spec:
+  host: backend-app
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPenddingRequests: 100
+        maxRequestPerConnection: 10000
+      tcp:
+        maxConnections: 100
+      loadBalancer:
+        simple: ROUND_ROBIN

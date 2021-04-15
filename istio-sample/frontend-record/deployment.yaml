@@ -1,0 +1,132 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+      - frontend-app.prd.msxpert.co.kr
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: frontend-app-vs
+  namespace: istio-app
+spec:
+  gateways:
+    - istio-gateway
+  hosts:
+    - '*'
+  http:
+    - match:
+        - uri:
+            exact: /
+        - uri:
+            regex: ^.*\.(ico|png|jpg|css|js|html|woff|woff2|otf|map)$
+        - uri:
+            prefix: /v2
+      route:
+        - destination:
+            host: frontend-app.istio-app.svc.cluster.local
+            port:
+              number: 8080
+            subset: v1
+          weight: 10
+        - destination:
+            host: frontend-app.istio-app.svc.cluster.local
+            port:
+              number: 8080
+            subset: v2
+          weight: 90
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: frontend-app
+spec:
+  host: frontend-app
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPenddingRequests: 100
+        maxRequestPerConnection: 10000
+      tcp:
+        maxConnections: 100
+      loadBalancer:
+        simple: ROUND_ROBIN
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+  labels:
+    app: frontend-app
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-app
+      version: v1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+        version: v1
+    spec:
+      containers:
+        - name: frontend-app
+          image: harbor.clap.crossent.com/istio-app/frontend-app:latest
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+          envFrom:
+            - configMapRef:
+                name: istio-frontend-config
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Seoul
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-app
+  labels:
+    app: frontend-app
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app: frontend-app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-frontend-config
+  namespace: istio-app
+data:
+  BACKEND_APP_SVC: backend-app.istio-app.svc.cluster.local
+  BACKEND_APP_SVC_PORT: "8080"
